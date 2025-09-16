@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KMFL Attendance System</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    body {
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      color: #fff;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding: 20px;
+    }
+    
+    .logo {
+      font-size: 3rem;
+      color: #4ecdc4;
+      margin-bottom: 15px;
+    }
+    
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      font-weight: 600;
+      background: linear-gradient(to right, #4ecdc4, #44a08d);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .subtitle {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 1.1rem;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    
+    .main-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-bottom: 30px;
+    }
+    
+    @media (max-width: 900px) {
+      .main-content {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .card {
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      backdrop-filter: blur(12px);
+      padding: 30px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      overflow: hidden;
+      position: relative;
+    }
+    
+    .card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+      z-index: -1;
+    }
+    
+    .card-title {
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+      color: #4ecdc4;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .time-display {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 1.2rem;
+      font-weight: 500;
+      color: #4ecdc4;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 10px;
+      border-radius: 8px;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+      position: relative;
+    }
+    
+    .form-group i {
+      position: absolute;
+      left: 15px;
+      top: 14px;
+      color: #4ecdc4;
+    }
+    
+    input {
+      width: 100%;
+      padding: 14px 14px 14px 45px;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 16px;
+      transition: all 0.3s ease;
+    }
+    
+    input:focus {
+      outline: none;
+      border-color: #4ecdc4;
+      background: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 0 0 2px rgba(78, 205, 196, 0.2);
+    }
+    
+    input::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+    }
+    
+    button {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(to right, #4ecdc4, #44a08d);
+      border: none;
+      border-radius: 8px;
+      color: #0f2027;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 10px;
+    }
+    
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    }
+    
+    button:disabled {
+      background: linear-gradient(to right, #555, #777);
+      color: #999;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    
+    .message {
+      margin-top: 20px;
+      padding: 12px;
+      border-radius: 8px;
+      text-align: center;
+      font-weight: 500;
+      display: none;
+    }
+    
+    .success {
+      background: rgba(46, 204, 113, 0.2);
+      color: #2ecc71;
+      display: block;
+    }
+    
+    .error {
+      background: rgba(231, 76, 60, 0.2);
+      color: #e74c3c;
+      display: block;
+    }
+    
+    .warning {
+      background: rgba(241, 196, 15, 0.2);
+      color: #f1c40f;
+      display: block;
+    }
+    
+    .time-restriction {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.6);
+    }
+    
+    /* Records Table Styles */
+    .table-container {
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      margin-bottom: 30px;
+      overflow-x: auto;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 600px;
+    }
+    
+    thead {
+      background: linear-gradient(to right, #4ecdc4, #44a08d);
+      color: #0f2027;
+    }
+    
+    th {
+      padding: 16px 20px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 1rem;
+    }
+    
+    th i {
+      margin-right: 8px;
+    }
+    
+    tbody tr {
+      transition: background-color 0.2s ease;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    tbody tr:hover {
+      background-color: rgba(78, 205, 196, 0.05);
+    }
+    
+    td {
+      padding: 14px 20px;
+      color: rgba(255, 255, 255, 0.9);
+    }
+    
+    .status {
+      display: inline-block;
+      padding: 5px 12px;
+      border-radius: 50px;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+    
+    .status-present {
+      background-color: rgba(46, 204, 113, 0.15);
+      color: #2ecc71;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: rgba(255, 255, 255, 0.7);
+    }
+    
+    .loading i {
+      font-size: 2rem;
+      margin-bottom: 15px;
+      color: #4ecdc4;
+      animation: spin 1.5s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .footer {
+      text-align: center;
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 0.9rem;
+      padding: 20px;
+      margin-top: 30px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .tabs {
+      display: flex;
+      margin-bottom: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    
+    .tab {
+      flex: 1;
+      padding: 15px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .tab.active {
+      background: linear-gradient(to right, #4ecdc4, #44a08d);
+      color: #0f2027;
+      font-weight: 600;
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">
+        <i class="fas fa-calendar-check"></i>
+      </div>
+      <h1>KMFL Attendance System</h1>
+      <p class="subtitle">Mark your attendance and view records with our secure system</p>
+    </header>
+    
+    <div class="tabs">
+      <div class="tab active" data-tab="form">Attendance Form</div>
+      <div class="tab" data-tab="records">View Records</div>
+    </div>
+    
+    <div class="tab-content active" id="formTab">
+      <div class="main-content">
+        <div class="card">
+          <h2 class="card-title"><i class="fas fa-user-check"></i> Mark Attendance</h2>
+          
+          <div class="time-display">
+            <i class="fas fa-clock"></i>
+            <span id="currentTime">Loading current time...</span>
+          </div>
+          
+          <form id="attendanceForm">
+            <div class="form-group">
+              <i class="fas fa-user"></i>
+              <input type="text" id="name" name="name" placeholder="Enter Your Full Name" required>
+            </div>
+            
+            <div class="form-group">
+              <i class="fas fa-id-card"></i>
+              <input type="text" id="roll" name="roll" placeholder="Enter Roll Number" required>
+            </div>
+            
+            <div class="form-group">
+              <i class="fas fa-graduation-cap"></i>
+              <input type="text" id="class" name="class" placeholder="Enter Class/Group" required>
+            </div>
+            
+            <button type="submit" id="submitBtn">
+              <i class="fas fa-check-circle"></i> Mark Attendance
+            </button>
+            
+            <div class="message" id="message"></div>
+          </form>
+          
+          <div class="time-restriction">
+            <p><i class="fas fa-info-circle"></i> Attendance can only be marked between 7:00 PM and 7:10 PM</p>
+          </div>
+        </div>
+        
+        <div class="card">
+          <h2 class="card-title"><i class="fas fa-chart-line"></i> Today's Stats</h2>
+          
+          <div class="time-display">
+            <i class="fas fa-calendar-day"></i>
+            <span id="currentDate">Loading date...</span>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div style="background: rgba(0, 0, 0, 0.2); padding: 20px; border-radius: 12px; text-align: center;">
+              <i class="fas fa-users" style="font-size: 2rem; color: #4ecdc4; margin-bottom: 10px;"></i>
+              <h3 id="totalStudents">--</h3>
+              <p>Total Students</p>
+            </div>
+            
+            <div style="background: rgba(0, 0, 0, 0.2); padding: 20px; border-radius: 12px; text-align: center;">
+              <i class="fas fa-check-circle" style="font-size: 2rem; color: #4ecdc4; margin-bottom: 10px;"></i>
+              <h3 id="todayRecords">--</h3>
+              <p>Today's Records</p>
+            </div>
+          </div>
+          
+          <div style="margin-top: 20px; background: rgba(0, 0, 0, 0.2); padding: 20px; border-radius: 12px;">
+            <h3 style="margin-bottom: 15px; color: #4ecdc4;">Attendance Status</h3>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div id="statusIndicator" style="width: 12px; height: 12px; border-radius: 50%; background: #e74c3c;"></div>
+              <span id="statusText">Currently not accepting attendance</span>
+            </div>
+            <div style="margin-top: 15px;">
+              <p id="timeRemaining">Next availability: Today 7:00 PM - 7:10 PM</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="tab-content" id="recordsTab">
+      <div class="table-container">
+        <table id="attendanceTable">
+          <thead>
+            <tr>
+              <th><i class="fas fa-user"></i> Name</th>
+              <th><i class="fas fa-id-card"></i> Roll No</th>
+              <th><i class="fas fa-graduation-cap"></i> Class</th>
+              <th><i class="fas fa-calendar"></i> Date</th>
+              <th><i class="fas fa-clock"></i> Time</th>
+              <th><i class="fas fa-check-circle"></i> Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td colspan="6" class="loading">
+                <i class="fas fa-spinner"></i>
+                <p>Loading attendance data...</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    
+    <div class="footer">
+      <p>© 2023 Smart Attendance System | Secure & Reliable</p>
+    </div>
+  </div>
+
+  <script>
+    const scriptURL = "https://script.google.com/macros/s/AKfycby6Te-QK42nhow7O7qOAIel9gXzYop5CW3oBiIsP_T7E3o-MjniNCuPqsgwm9Atuky1yg/exec";
+    const recordsURL = "https://script.google.com/macros/s/AKfycbx_ZW3iPH9E3E5OJs61KmR5AldUWiQDuOwyPz3oWvYB_n8MRDAlIDlw7IxM7WuJIY2j9A/exec";
+    
+    // DOM elements
+    const currentTimeElement = document.getElementById("currentTime");
+    const currentDateElement = document.getElementById("currentDate");
+    const attendanceForm = document.getElementById("attendanceForm");
+    const submitBtn = document.getElementById("submitBtn");
+    const messageElement = document.getElementById("message");
+    const statusIndicator = document.getElementById("statusIndicator");
+    const statusText = document.getElementById("statusText");
+    const timeRemaining = document.getElementById("timeRemaining");
+    const totalStudents = document.getElementById("totalStudents");
+    const todayRecords = document.getElementById("todayRecords");
+    const tabs = document.querySelectorAll(".tab");
+    const tabContents = document.querySelectorAll(".tab-content");
+    
+    // Tab switching functionality
+    tabs.forEach(tab => {
+      tab.addEventListener("click", () => {
+        const tabId = tab.getAttribute("data-tab");
+        
+        // Update active tab
+        tabs.forEach(t => t.classList.remove("active"));
+        tab.classList.add("active");
+        
+        // Show active content
+        tabContents.forEach(content => {
+          content.classList.remove("active");
+          if (content.id === tabId + "Tab") {
+            content.classList.add("active");
+          }
+        });
+        
+        // Load records if needed
+        if (tabId === "records") {
+          loadAttendanceRecords();
+        }
+      });
+    });
+    
+    // Update clock and date display
+    function updateClock() {
+      const now = new Date();
+      const timeString = now.toLocaleTimeString();
+      const dateString = now.toLocaleDateString(undefined, { 
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+      });
+      
+      currentTimeElement.textContent = timeString;
+      currentDateElement.textContent = dateString;
+      
+      // Check if it's between 7:00 PM and 7:10 PM
+      const hours = now.getHours();
+      const minutes = now.getMinutes();
+      const isWithinTime = (hours === 19 && minutes >= 0 && minutes <= 10);
+      
+      if (isWithinTime) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> Mark Attendance';
+        statusIndicator.style.background = "#2ecc71";
+        statusText.textContent = "Accepting attendance submissions";
+        timeRemaining.textContent = `Time remaining: ${10 - minutes} minutes`;
+      } else {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-lock"></i> Attendance Closed';
+        statusIndicator.style.background = "#e74c3c";
+        statusText.textContent = "Currently not accepting attendance";
+        
+        if (hours < 19) {
+          timeRemaining.textContent = `Next availability: Today 7:00 PM - 7:10 PM`;
+        } else {
+          timeRemaining.textContent = `Next availability: Tomorrow 7:00 PM - 7:10 PM`;
+        }
+      }
+      
+      return isWithinTime;
+    }
+    
+    // Load attendance records
+    function loadAttendanceRecords() {
+      const tbody = document.querySelector("#attendanceTable tbody");
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" class="loading">
+            <i class="fas fa-spinner"></i>
+            <p>Loading attendance data...</p>
+          </td>
+        </tr>
+      `;
+      
+      fetch(recordsURL)
+        .then(res => res.json())
+        .then(data => {
+          tbody.innerHTML = '';
+          
+          // Update stats
+          totalStudents.textContent = new Set(data.slice(1).map(row => row[0])).size;
+          todayRecords.textContent = data.length - 1;
+          
+          // Process and display the attendance records
+          data.slice(1).forEach(row => {
+            let tr = document.createElement("tr");
+            
+            // Name
+            let tdName = document.createElement("td");
+            tdName.textContent = row[0] || 'N/A';
+            tr.appendChild(tdName);
+            
+            // Roll No
+            let tdRoll = document.createElement("td");
+            tdRoll.textContent = row[1] || 'N/A';
+            tr.appendChild(tdRoll);
+            
+            // Class
+            let tdClass = document.createElement("td");
+            tdClass.textContent = row[2] || 'N/A';
+            tr.appendChild(tdClass);
+            
+            // Date
+            let tdDate = document.createElement("td");
+            tdDate.textContent = row[3] || 'N/A';
+            tr.appendChild(tdDate);
+            
+            // Time
+            let tdTime = document.createElement("td");
+            tdTime.textContent = row[4] || 'N/A';
+            tr.appendChild(tdTime);
+            
+            // Status
+            let tdStatus = document.createElement("td");
+            let statusSpan = document.createElement("span");
+            statusSpan.className = "status status-present";
+            statusSpan.textContent = "Present";
+            tdStatus.appendChild(statusSpan);
+            tr.appendChild(tdStatus);
+            
+            tbody.appendChild(tr);
+          });
+        })
+        .catch(err => {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="6" class="loading">
+                <i class="fas fa-exclamation-circle"></i>
+                <p>Error loading data. Please try again later.</p>
+              </td>
+            </tr>
+          `;
+          console.error('Error fetching data:', err);
+        });
+    }
+    
+    // Initial clock update and set interval
+    updateClock();
+    setInterval(updateClock, 1000);
+    
+    // Form submission handler
+    attendanceForm.addEventListener("submit", e => {
+      e.preventDefault();
+      
+      // Double-check time restriction
+      const now = new Date();
+      const hours = now.getHours();
+      const minutes = now.getMinutes();
+      const isWithinTime = (hours === 19 && minutes >= 0 && minutes <= 10);
+      
+      if (!isWithinTime) {
+        messageElement.textContent = "Attendance can only be submitted between 7:00 PM and 7:10 PM.";
+        messageElement.className = "message error";
+        messageElement.style.display = "block";
+        return;
+      }
+      
+      // Get form data
+      const data = {
+        name: document.getElementById("name").value.trim(),
+        roll: document.getElementById("roll").value.trim(),
+        class: document.getElementById("class").value.trim()
+      };
+      
+      // Show loading state
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+      messageElement.textContent = "Submitting your attendance...";
+      messageElement.className = "message";
+      messageElement.style.display = "block";
+      
+      // Submit to Google Sheets
+      fetch(scriptURL, {
+        method: "POST",
+        body: JSON.stringify(data)
+      })
+      .then(res => res.json())
+      .then(res => {
+        messageElement.textContent = res.message + (res.marked ? ` (${res.marked})` : "");
+        messageElement.className = "message success";
+        
+        // Reset form
+        attendanceForm.reset();
+        
+        // Update records count
+        todayRecords.textContent = parseInt(todayRecords.textContent) + 1;
+        
+        // Reset button after 3 seconds
+        setTimeout(() => {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> Mark Attendance';
+        }, 3000);
+      })
+      .catch(err => {
+        messageElement.textContent = "Error submitting attendance. Please try again.";
+        messageElement.className = "message error";
+        
+        // Reset button after 3 seconds
+        setTimeout(() => {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> Mark Attendance';
+        }, 3000);
+      });
+    });
+    
+    // Initialize page
+    document.addEventListener("DOMContentLoaded", function() {
+      // Set current date
+      const now = new Date();
+      currentDateElement.textContent = now.toLocaleDateString(undefined, { 
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+      });
+      
+      // Load initial data for stats
+      totalStudents.textContent = "42";
+      todayRecords.textContent = "28";
+    });
+  </script>
+</body>
+</html>
